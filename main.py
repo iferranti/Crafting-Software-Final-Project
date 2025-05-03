@@ -141,13 +141,51 @@ def create_mapping_from_csv(csv_path):
     return mapping
 
 
+def process_tiff_files(tiff_dir, output_dir, mapping):
+    """Process and rename TIFF files according to the CSV mapping."""
+    tiffs = glob.glob(os.path.join(tiff_dir, '*.tif')) + glob.glob(os.path.join(tiff_dir, '*.tiff'))
+    logging.info(f"Found {len(tiffs)} TIFFs in {tiff_dir}")
+
+    pattern = re.compile(r'\(series\s*(\d+)\)', re.IGNORECASE)  # Regex to extract series number from file name
+    renamed = 0  # Counter for renamed files
+
+    # Iterate through all the TIFF files
+    for src in tiffs:
+        fname = os.path.basename(src)  # Extract the file name from the full path
+        m = pattern.search(fname)  # Try to match the series number using the regex
+        if not m:
+            logging.warning(f"Skipping (no series in name): {fname}")
+            continue
+        #series = int(m.group(1))  # Extract the series number
+        series = int(m.group(1))-1 # Adjust for ImageJ BioFormats incorrectly iterating starting at series 01, rather than series 00
+
+        # Check if the series and base image name match the mapping
+        for (base, ser), point in mapping.items():
+            if ser == series and base in fname:
+                old_chunk = f"{base} (series {m.group(1)})"  # Construct the old chunk to be replaced
+                new_chunk = point  # The new chunk to replace the old one
+                new_name = fname.replace(old_chunk, new_chunk)  # Replace the old chunk with the new chunk
+                dst = os.path.join(output_dir, new_name)  # Destination path for the renamed file
+
+                shutil.copy2(src, dst)  # Copy the file to the new destination
+                renamed += 1  # Increment the counter
+                break
+        else:
+            logging.warning(f"No mapping for {fname}")
+
+    logging.info(f"Done. {renamed} files renamed into {output_dir}")
+
+
 
 
 def main():
     #Configuration
-    nd2_file_name = '20250220_Falvano-Full-Plate.nd2'
+    nd2_file_name = '20250220_Galvano-Full-Plate.nd2'
     multipoints_file_name = 'multipoints.xml'
     output_csv = 'matched_positions.csv'
+    csv_path = 'matched_positions.csv'
+    tiff_dir = Path('import-tiffs')
+    output_dir = Path('output-tiffs')
 
     # Read and parse the ND2 file
     nd2_file_path = get_file_path(nd2_file_name)
@@ -157,8 +195,7 @@ def main():
     
     # Parse the XML data from ND2 file
     ns = {'ome': 'http://www.openmicroscopy.org/Schemas/OME/2016-06'}
-    planes = parse_xml(nd2_xml, ns)
-
+    planes = parse_nd2_xml(nd2_xml, ns)
 
     # Parse the multipoints XML file
     positions_file = get_file_path(multipoints_file_name)
@@ -170,7 +207,16 @@ def main():
     # Save matches to CSV
     save_matches_to_csv(matches, output_csv)
 
-    
+    # Build mapping from CSV
+    mapping = create_mapping_from_csv(csv_path)
+
+    # Process TIFF files and rename them
+    process_tiff_files(tiff_dir, output_dir, mapping)
+
+    # List output directory contents
+    logging.info("Contents of output directory:")
+    for f in os.listdir(output_dir):
+        logging.info(f"   {f}")
 
 
 if __name__ == "__main__":
