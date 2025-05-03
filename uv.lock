@@ -110,6 +110,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "ipykernel" },
+    { name = "lfs" },
     { name = "nd2" },
     { name = "pandas" },
     { name = "pyimagej" },
@@ -118,6 +119,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "lfs", specifier = ">=0.2" },
     { name = "nd2", specifier = ">=0.10.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyimagej", specifier = ">=1.6.0" },
@@ -352,6 +354,14 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/29/9f/c10704cd16909b67004457883b52ed42c039df18be2a4f12b8599d98a172/labeling-0.1.14.tar.gz", hash = "sha256:fceaa24e3c5d88d2bfa17ea5356503553be726dc3395563358266c9c6fac8b87", size = 7789 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/26/bf/aec7359ac7f779425eba5fa1dd2c01a983c4f73023e9dfb08bf65b5ddb66/labeling-0.1.14-py3-none-any.whl", hash = "sha256:80ef77e62a4a227aa042ee8d5a2ffc3cb1d72d0638f00851fb7852ca5025d6ca", size = 8696 },
+]
+
+[[package]]
+name = "lfs"
+version = "0.2"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5e/0d/dd5e2c9fda5c0ba0354b9497d88e25f63c5f6ce06253c3f9ab03a5cec6d9/lfs-0.2-py3-none-any.whl", hash = "sha256:31edf256872c1dc21572542645c2b9650a96643b277150c1cba82ee659fa0663", size = 15452 },
 ]
 
 [[package]]

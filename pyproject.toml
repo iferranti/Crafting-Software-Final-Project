@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "ipykernel>=6.29.5",
+    "lfs>=0.2",
     "nd2>=0.10.2",
     "pandas>=2.2.3",
     "pyimagej>=1.6.0",
