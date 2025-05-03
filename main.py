@@ -46,6 +46,74 @@ def parse_nd2_xml(xml_data, ns):
     
     return planes
 
+def parse_xml(xml_data, ns):
+    """Parse XML data and extract image planes."""
+    tree = ET.ElementTree(ET.fromstring(xml_data))
+    root = tree.getroot()
+    planes = []
+
+    for image in root.findall('ome:Image', ns):
+        image_name = image.get('Name')
+        plane = image.find('.//ome:Plane', ns)
+        if plane is not None:
+            posX = float(plane.get('PositionX'))
+            posY = float(plane.get('PositionY'))
+            planes.append({
+                'image_name': image_name,
+                'posX': posX,
+                'posY': posY
+            })
+    
+    return planes
+
+
+def parse_multipoints_xml(positions_file):
+    """Parse the multipoints XML file and return a list of points with their names and poisitons."""
+    try:
+        tree_positions = ET.parse(positions_file)
+        root_positions = tree_positions.getroot()
+        no_name = root_positions.find('no_name')
+        points = []
+
+        for point in no_name:
+            name_elem = point.find('strName')
+            x_elem = point.find('dXPosition')
+            y_elem = point.find('dYPosition')
+
+            if name_elem is not None and x_elem is not None and y_elem is not None:
+                strName = name_elem.get('value')
+                dX = float(x_elem.get('value'))
+                dY = float(y_elem.get('value'))
+                points.append({
+                    'strName': strName,
+                    'dX': dX,
+                    'dY': dY
+                })
+
+        return points
+    
+    except Exception as e:
+        logging.error(f"Error parsing multipoints XML {positions_file}: {e}")
+        return []
+
+
+def match_positions(planes, points, error_margin=1e-3):
+    """Compare the planes and points based on X and Y positions."""
+    matches = []
+    for plane in planes:
+        for point in points:
+            if abs(plane['posX'] - point['dX']) <= error_margin and abs(plane['posY'] - point['dY']) <= error_margin:
+                matches.append({
+                    'image_name': plane['image_name'],
+                    'point_name': point['strName'],
+                    'posX': plane['posX'],
+                    'posY': plane['posY'],
+                    'dX': point['dX'],
+                    'dY': point['dY']
+                })
+    return matches
+
+
 def main():
     print("Hello from crafting-software-final-project!")
 
