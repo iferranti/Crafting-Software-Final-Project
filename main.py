@@ -113,6 +113,17 @@ def match_positions(planes, points, error_margin=1e-3):
                 })
     return matches
 
+def save_matches_to_csv(matches, output_csv):
+    """Save the matching positions to a CSV file."""
+    if matches:
+        fieldnames = matches[0].keys()
+        with open(output_csv, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(matches)
+        logging.info(f"Saved {len(matches)} matching positions to '{output_csv}'")
+    else:
+        logging.warning("No matches found; nothing to save.")
 
 def main():
     print("Hello from crafting-software-final-project!")
