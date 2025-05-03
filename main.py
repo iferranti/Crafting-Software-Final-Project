@@ -125,8 +125,58 @@ def save_matches_to_csv(matches, output_csv):
     else:
         logging.warning("No matches found; nothing to save.")
 
+def create_mapping_from_csv(csv_path):
+    """Create a mapping from the CSV data."""
+    mapping = {}
+    try:
+        with open(csv_path, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                img_name = row['image_name']
+                point = row['point_name']
+                m = re.search(r'\(Series\s*(\d+)\)', img_name, re.IGNORECASE)
+                if not m:
+                    logging.warning(f"Bad image_name format: {img_name}")
+                    continue
+                series = int(m.group(1))
+                base = img_name.split(' (Series')[0] + '.nd2'
+                mapping[(base, series)] = point
+    except Exception as e:
+        logging.error(f"Error reading CSV {csv_path}: {e}")
+
+    return mapping
+
+
+
+
 def main():
-    print("Hello from crafting-software-final-project!")
+    #Configuration
+    nd2_file_name = '20250220_Falvano-Full-Plate.nd2'
+    multipoints_file_name = 'multipoints.xml'
+    output_csv = 'matched_positions.csv'
+
+    # Read and parse the ND2 file
+    nd2_file_path = get_file_path(nd2_file_name)
+    nd2_xml = read_nd2_file(nd2_file_path)
+    if not nd2_xml:
+        return
+    
+    # Parse the XML data from ND2 file
+    ns = {'ome': 'http://www.openmicroscopy.org/Schemas/OME/2016-06'}
+    planes = parse_xml(nd2_xml, ns)
+
+
+    # Parse the multipoints XML file
+    positions_file = get_file_path(multipoints_file_name)
+    points = parse_multipoints_xml(positions_file)
+
+    # Match positions
+    matches = match_positions(planes, points)
+
+    # Save matches to CSV
+    save_matches_to_csv(matches, output_csv)
+
+    
 
 
 if __name__ == "__main__":
